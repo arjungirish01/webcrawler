@@ -1,5 +1,29 @@
 const {JSDOM}=require("jsdom");
 
+async function crawlpage(baseUrl){
+    console.log(`crawling active on: ${baseUrl}`);
+    try{
+    const response=await fetch(baseUrl); //default fetch method is GET and returns html
+    
+    if(response.status>399){
+      console.log(`Status ${response.status} : ${baseUrl}`)
+      return;
+    }
+    const content=response.headers.get("content-type");
+    if(content.includes("html/text")){
+      console.log(`Non html element: ${baseUrl}`);
+      return;
+    }
+
+    console.log(await response.text());
+
+    }catch(error){
+      console.log(`${error.message}: ${baseUrl}:`);
+    }
+
+
+}
+
 function getUrlFromHtml(html,baseUrl){
   let linkArray=[];
   const dom=new JSDOM(html); //converting string to DOM
@@ -36,5 +60,7 @@ function normaliseURL(url){
 }
 
 module.exports={
-  normaliseURL,getUrlFromHtml
+  normaliseURL,
+  getUrlFromHtml,
+  crawlpage
 }
