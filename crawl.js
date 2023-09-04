@@ -1,7 +1,23 @@
 const {JSDOM}=require("jsdom");
 
-async function crawlpage(baseUrl){
-    console.log(`crawling active on: ${baseUrl}`);
+async function crawlpage(baseUrl,currentUrl,pages){
+
+    const baseUrlObj=new URL(baseUrl);
+    const currentUrlObj=new URL(currentUrl);
+
+    if(baseUrlObj.hostname!==currentUrlObj.hostname){
+      return pages;
+    }
+
+    const currentNormalised=normaliseURL(currentUrl);
+
+    if(pages[currentNormalised]>0){
+      pages[currentNormalised]++
+      return pages
+    }
+    
+    pages[currentNormalised]=1;
+
     try{
     const response=await fetch(baseUrl); //default fetch method is GET and returns html
     
@@ -15,13 +31,19 @@ async function crawlpage(baseUrl){
       return;
     }
 
-    console.log(await response.text());
+    const htmlBody=await response.text()
+
+    const nextUrls=getUrlFromHtml(htmlBody,baseUrl);
+    for(const ele of nextUrls){
+      pages=await crawlpage(baseUrl,ele,pages);
+    }
 
     }catch(error){
       console.log(`${error.message}: ${baseUrl}:`);
     }
 
-
+    console.log(`crawling active on: ${baseUrl}`);
+    return pages;
 }
 
 function getUrlFromHtml(html,baseUrl){
@@ -35,7 +57,7 @@ function getUrlFromHtml(html,baseUrl){
         const urlObj=new URL(`${baseUrl}${ele.href}`);
         linkArray.push(urlObj.href)
       }catch(error){
-        console.log(`relative url: ${error.message}`);
+        console.log(`relative url: ${error.message} for page: ${urlObj.href}`);
       }
     }
     else{
@@ -43,7 +65,7 @@ function getUrlFromHtml(html,baseUrl){
         const urlObj=new URL(ele.href)
         linkArray.push(ele.href)
       }catch(error){
-        console.log(`absolute url: ${error.message}`)
+        console.log(`absolute url: ${error.message} for page: ${ele.href}`)
       }
     }
   }

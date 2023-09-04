@@ -1,6 +1,6 @@
 const {crawlpage}=require("./crawl.js");
 
-function main(){
+async function main(){
   if(process.argv.length<3){
     console.log("Invalid input from command line")
   }
@@ -10,7 +10,10 @@ function main(){
   }
 
  const baseUrl=process.argv[2]; // process.argv contains 3 elements, last one is the commandline input
- crawlpage(baseUrl);
+ const result=await crawlpage(baseUrl,baseUrl,{});
+ for(const ele of Object.entries(result)){ //as it is object non iterateable instead of for in we can use Object.entries
+    console.log(ele);
+ }
 }
 
 main();
